@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGL 图形展示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 40px 0;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        .demo-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .demo-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .card-header h3 {
+            font-size: 1.4rem;
+            margin-bottom: 8px;
+        }
+        
+        .card-header p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .card-content {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        canvas {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            width: 100%;
+            max-width: 300px;
+            height: 300px;
+        }
+        
+        .description {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            opacity: 0.9;
+            margin-top: 10px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+        
+        @media (max-width: 768px) {
+            .demo-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>WebGL 图形展示</h1>
+            <p class="subtitle">这是一个展示WebGL基础图形的网站，包含了三角形、正方形、彩色图形等示例。每个示例都使用了不同的WebGL绘制技术。</p>
+        </header>
+        
+        <div class="demo-grid">
+            <!-- 三角形示例 -->
+            <div class="demo-card">
+                <div class="card-header">
+                    <h3>基本三角形</h3>
+                    <p>使用TRIANGLE_FANS模式绘制</p>
+                </div>
+                <div class="card-content">
+                    <canvas id="triangle-canvas"></canvas>
+                    <p class="description">这个示例展示了如何使用WebGL绘制一个基本的三角形。顶点着色器接收位置信息，片元着色器设置黄色填充。</p>
+                    <div class="controls">
+                        <button onclick="changeTriangleColor()">改变颜色</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 正方形示例 -->
+            <div class="demo-card">
+                <div class="card-header">
+                    <h3>正方形</h3>
+                    <p>使用TRIANGLE_FAN模式绘制</p>
+                </div>
+                <div class="card-content">
+                    <canvas id="square-canvas"></canvas>
+                    <p class="description">这个示例展示了如何使用TRIANGLE_FAN模式绘制一个正方形。通过四个顶点和适当的绘制模式实现。</p>
+                    <div class="controls">
+                        <button onclick="rotateSquare()">旋转</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 三角形和正方形组合 -->
+            <div class="demo-card">
+                <div class="card-header">
+                    <h3>三角形与正方形</h3>
+                    <p>组合图形绘制</p>
+                </div>
+                <div class="card-content">
+                    <canvas id="trisquare-canvas"></canvas>
+                    <p class="description">这个示例展示了如何在同一个画布上绘制三角形和正方形，使用不同的绘制模式。</p>
+                    <div class="controls">
+                        <button onclick="toggleTrisquare()">切换模式</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 彩色三角形 -->
+            <div class="demo-card">
+                <div class="card-header">
+                    <h3>彩色三角形</h3>
+                    <p>顶点颜色插值</p>
+                </div>
+                <div class="card-content">
+                    <canvas id="trianglecolor-canvas"></canvas>
+                    <p class="description">这个示例展示了如何为三角形的每个顶点设置不同颜色，WebGL会自动在顶点之间进行颜色插值。</p>
+                    <div class="controls">
+                        <button onclick="randomizeColors()">随机颜色</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 双着色器示例 -->
+            <div class="demo-card">
+                <div class="card-header">
+                    <h3>双着色器图形</h3>
+                    <p>使用两个片元着色器</p>
+                </div>
+                <div class="card-content">
+                    <canvas id="trisquarenc-canvas"></canvas>
+                    <p class="description">这个示例展示了如何使用两个不同的片元着色器，一个用于三角形(红色)，一个用于正方形(绿色)。</p>
+                    <div class="controls">
+                        <button onclick="swapShaders()">交换着色器</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 彩色组合图形 -->
+            <div class="demo-card">
+                <div class="card-header">
+                    <h3>彩色组合图形</h3>
+                    <p>使用顶点颜色属性</p>
+                </div>
+                <div class="card-content">
+                    <canvas id="trisquarencv2-canvas"></canvas>
+                    <p class="description">这个示例展示了如何为三角形和正方形分别设置不同的颜色，通过顶点颜色属性实现。</p>
+                    <div class="controls">
+                        <button onclick="changeShapeColors()">改变形状颜色</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>WebGL 图形展示 &copy; 2023 | 基于WebGL 3.0 ES</p>
+        </footer>
+    </div>
+
+    <script>
+        // 初始化所有canvas的WebGL上下文
+        function initWebGL(canvasId, vertexShaderSource, fragmentShaderSource) {
+            const canvas = document.getElementById(canvasId);
+            const gl = canvas.getContext('webgl2');
+            
+            if (!gl) {
+                console.error('WebGL 2.0 not supported');
+                return null;
+            }
+            
+            // 创建顶点着色器
+            const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+            gl.shaderSource(vertexShader, vertexShaderSource);
+            gl.compileShader(vertexShader);
+            
+            if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+                console.error('Vertex shader compilation error:', gl.getShaderInfoLog(vertexShader));
+                return null;
+            }
+            
+            // 创建片元着色器
+            const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+            gl.shaderSource(fragmentShader, fragmentShaderSource);
+            gl.compileShader(fragmentShader);
+            
+            if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+                console.error('Fragment shader compilation error:', gl.getShaderInfoLog(fragmentShader));
+                return null;
+            }
+            
+            // 创建着色器程序
+            const program = gl.createProgram();
+            gl.attachShader(program, vertexShader);
+            gl.attachShader(program, fragmentShader);
+            gl.linkProgram(program);
+            
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                console.error('Program linking error:', gl.getProgramInfoLog(program));
+                return null;
+            }
+            
+            gl.useProgram(program);
+            
+            return { gl, program };
+        }
+        
+        // 基本三角形绘制
+        function drawTriangle() {
+            const { gl, program } = initWebGL(
+                'triangle-canvas',
+                `#version 300 es
+                in vec4 vPosition;
+                void main() {
+                    gl_Position = vPosition;
+                }`,
+                `#version 300 es
+                precision mediump float;
+                out vec4 fColor;
+                uniform vec4 uColor;
+                void main() {
+                    fColor = uColor;
+                }`
+            );
+            
+            if (!gl) return;
+            
+            // 设置三角形顶点
+            const vertices = new Float32Array([
+                0.0, 0.5,
+                -0.5, -0.5,
+                0.5, -0.5
+            ]);
+            
+            const vertexBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+            
+            const positionLocation = gl.getAttribLocation(program, 'vPosition');
+            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(positionLocation);
+            
+            // 设置颜色
+            const colorLocation = gl.getUniformLocation(program, 'uColor');
+            gl.uniform4f(colorLocation, 1.0, 1.0, 0.0, 1.0); // 黄色
+            
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            
+            gl.drawArrays(gl.TRIANGLES, 0, 3);
+            
+            // 存储颜色位置供后续修改
+            window.triangleColorLocation = colorLocation;
+            window.triangleGl = gl;
+            window.triangleProgram = program;
+        }
+        
+        // 正方形绘制
+        function drawSquare() {
+            const { gl, program } = initWebGL(
+                'square-canvas',
+                `#version 300 es
+                in vec4 vPosition;
+                uniform float uRotation;
+                void main() {
+                    float s = sin(uRotation);
+                    float c = cos(uRotation);
+                    mat2 rotation = mat2(c, -s, s, c);
+                    vec2 rotatedPosition = rotation * vPosition.xy;
+                    gl_Position = vec4(rotatedPosition, 0.0, 1.0);
+                }`,
+                `#version 300 es
+                precision mediump float;
+                out vec4 fColor;
+                void main() {
+                    fColor = vec4(0.0, 1.0, 1.0, 1.0);
+                }`
+            );
+            
+            if (!gl) return;
+            
+            // 设置正方形顶点
+            const vertices = new Float32Array([
+                -0.5, -0.5,
+                0.5, -0.5,
+                0.5, 0.5,
+                -0.5, 0.5
+            ]);
+            
+            const vertexBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+            
+            const positionLocation = gl.getAttribLocation(program, 'vPosition');
+            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(positionLocation);
+            
+            // 旋转uniform
+            const rotationLocation = gl.getUniformLocation(program, 'uRotation');
+            gl.uniform1f(rotationLocation, 0);
+            
+            gl.clearColor(0.1, 0.1, 0.1, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            
+            gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+            
+            // 存储旋转位置供后续修改
+            window.squareRotationLocation = rotationLocation;
+            window.squareGl = gl;
+            window.squareProgram = program;
+        }
+        
+        // 三角形和正方形组合绘制
+        function drawTrisquare() {
+            const { gl, program } = initWebGL(
+                'trisquare-canvas',
+                `#version 300 es
+                in vec4 vPosition;
+                void main() {
+                    gl_Position = vPosition;
+                }`,
+                `#version 300 es
+                precision mediump float;
+                out vec4 fColor;
+                void main() {
+                    fColor = vec4(1.0, 0.5, 0.0, 1.0);
+                }`
+            );
+            
+            if (!gl) return;
+            
+            // 设置顶点 - 三角形和正方形
+            const vertices = new Float32Array([
+                // 三角形
+                -0.5, 0.5,
+                -1.0, -0.5,
+                0.0, -0.5,
+                // 正方形
+                0.0, -0.5,
+                1.0, -0.5,
+                1.0, 0.5,
+                0.0, 0.5
+            ]);
+            
+            const vertexBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+            
+            const positionLocation = gl.getAttribLocation(program, 'vPosition');
+            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(positionLocation);
+            
+            gl.clearColor(0.2, 0.2, 0.2, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            
+            // 绘制三角形
+            gl.drawArrays(gl.TRIANGLES, 0, 3);
+            // 绘制正方形
+            gl.drawArrays(gl.TRIANGLE_FAN, 3, 4);
+            
+            window.trisquareGl = gl;
+            window.trisquareVertices = vertices;
+        }
+        
+        // 彩色三角形绘制
+        function drawTriangleColor() {
+            const { gl, program } = initWebGL(
+                'trianglecolor-canvas',
+                `#version 300 es
+                in vec4 aPosition;
+                in vec4 aColor;
+                out vec4 vColor;
+                void main() {
+                    gl_Position = aPosition;
+                    vColor = aColor;
+                }`,
+                `#version 300 es
+                precision mediump float;
+                in vec4 vColor;
+                out vec4 fColor;
+                void main() {
+                    fColor = vColor;
+                }`
+            );
+            
+            if (!gl) return;
+            
+            // 设置三角形顶点
+            const vertices = new Float32Array([
+                -1.0, -1.0,
+                1.0, -1.0,
+                0.0, 1.0
+            ]);
+            
+            // 设置顶点颜色
+            const colors = new Float32Array([
+                1.0, 0.0, 0.0, 1.0,  // 红色
+                0.0, 1.0, 0.0, 1.0,  // 绿色
+                0.0, 0.0, 1.0, 1.0   // 蓝色
+            ]);
+            
+            // 顶点缓冲区
+            const vertexBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+            
+            const positionLocation = gl.getAttribLocation(program, 'aPosition');
+            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(positionLocation);
+            
+            // 颜色缓冲区
+            const colorBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+            
+            const colorLocation = gl.getAttribLocation(program, 'aColor');
+            gl.vertexAttribPointer(colorLocation, 4, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(colorLocation);
+            
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            
+            gl.drawArrays(gl.TRIANGLES, 0, 3);
+            
+            // 存储颜色数据供后续修改
+            window.triangleColorVertices = vertices;
+            window.triangleColorColors = colors;
+            window.triangleColorGl = gl;
+            window.triangleColorColorBuffer = colorBuffer;
+        }
+        
+        // 双着色器示例绘制
+        function drawTrisquareNC() {
+            const { gl, program } = initWebGL(
+                'trisquarenc-canvas',
+                `#version 300 es
+                in vec4 vPosition;
+                void main() {
+                    gl_Position = vPosition;
+                }`,
+                `#version 300 es
+                precision mediump float;
+                out vec4 fColor;
+                uniform vec4 uColor;
+                void main() {
+                    fColor = uColor;
+                }`
+            );
+            
+            if (!gl) return;
+            
+            // 设置顶点 - 三角形和正方形
+            const vertices = new Float32Array([
+                // 三角形
+                -0.5, 0.5,
+                -1.0, -0.5,
+                0.0, -0.5,
+                // 正方形
+                0.0, -0.5,
+                1.0, -0.5,
+                1.0, 0.5,
+                0.0, 0.5
+            ]);
+            
+            const vertexBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+            
+            const positionLocation = gl.getAttribLocation(program, 'vPosition');
+            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(positionLocation);
+            
+            gl.clearColor(0.3, 0.3, 0.3, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            
+            // 设置三角形颜色 (红色)
+            const colorLocation = gl.getUniformLocation(program, 'uColor');
+            gl.uniform4f(colorLocation, 1.0, 0.0, 0.0, 1.0);
+            gl.drawArrays(gl.TRIANGLES, 0, 3);
+            
+            // 设置正方形颜色 (绿色)
+            gl.uniform4f(colorLocation, 0.0, 1.0, 0.0, 1.0);
+            gl.drawArrays(gl.TRIANGLE_FAN, 3, 4);
+            
+            // 存储信息供后续修改
+            window.trisquareNCColorLocation = colorLocation;
+            window.trisquareNCGl = gl;
+            window.trisquareNCProgram = program;
+        }
+        
+        // 彩色组合图形绘制
+        function drawTrisquareNCV2() {
+            const { gl, program } = initWebGL(
+                'trisquarencv2-canvas',
+                `#version 300 es
+                in vec4 aPosition;
+                in vec4 aColor;
+                out vec4 vColor;
+                void main() {
+                    gl_Position = aPosition;
+                    vColor = aColor;
+                }`,
+                `#version 300 es
+                precision mediump float;
+                in vec4 vColor;
+                out vec4 fColor;
+                void main() {
+                    fColor = vColor;
+                }`
+            );
+            
+            if (!gl) return;
+            
+            // 设置顶点 - 三角形和正方形
+            const vertices = new Float32Array([
+                // 三角形
+                -0.5, 0.5,
+                -1.0, -0.5,
+                0.0, -0.5,
+                // 正方形
+                0.0, -0.5,
+                1.0, -0.5,
+                1.0, 0.5,
+                0.0, 0.5
+            ]);
+            
+            // 设置颜色 - 三角形为绿色，正方形为红色
+            const colors = new Float32Array([
+                // 三角形 - 绿色
+                0.0, 1.0, 0.0, 1.0,
+                0.0, 1.0, 0.0, 1.0,
+                0.0, 1.0, 0.0, 1.0,
+                // 正方形 - 红色
+                1.0, 0.0, 0.0, 1.0,
+                1.0, 0.0, 0.0, 1.0,
+                1.0, 0.0, 0.0, 1.0,
+                1.0, 0.0, 0.0, 1.0
+            ]);
+            
+            // 顶点缓冲区
+            const vertexBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+            
+            const positionLocation = gl.getAttribLocation(program, 'aPosition');
+            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(positionLocation);
+            
+            // 颜色缓冲区
+            const colorBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+            
+            const colorLocation = gl.getAttribLocation(program, 'aColor');
+            gl.vertexAttribPointer(colorLocation, 4, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(colorLocation);
+            
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            
+            // 绘制三角形
+            gl.drawArrays(gl.TRIANGLES, 0, 3);
+            // 绘制正方形
+            gl.drawArrays(gl.TRIANGLE_FAN, 3, 4);
+            
+            // 存储信息供后续修改
+            window.trisquareNCV2Vertices = vertices;
+            window.trisquareNCV2Colors = colors;
+            window.trisquareNCV2Gl = gl;
+            window.trisquareNCV2ColorBuffer = colorBuffer;
+        }
+        
+        // 交互功能
+        
+        // 改变三角形颜色
+        function changeTriangleColor() {
+            if (!window.triangleGl || !window.triangleColorLocation) return;
+            
+            const colors = [
+                [1.0, 1.0, 0.0, 1.0], // 黄色
+                [1.0, 0.0, 0.0, 1.0], // 红色
+                [0.0, 1.0, 0.0, 1.0], // 绿色
+                [0.0, 0.0, 1.0, 1.0], // 蓝色
+                [1.0, 0.0, 1.0, 1.0]  // 紫色
+            ];
+            
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            window.triangleGl.uniform4f(window.triangleColorLocation, ...randomColor);
+            window.triangleGl.clear(window.triangleGl.COLOR_BUFFER_BIT);
+            window.triangleGl.drawArrays(window.triangleGl.TRIANGLES, 0, 3);
+        }
+        
+        // 旋转正方形
+        function rotateSquare() {
+            if (!window.squareGl || !window.squareRotationLocation) return;
+            
+            let rotation = window.squareRotation || 0;
+            rotation += 0.2;
+            window.squareRotation = rotation;
+            
+            window.squareGl.uniform1f(window.squareRotationLocation, rotation);
+            window.squareGl.clear(window.squareGl.COLOR_BUFFER_BIT);
+            window.squareGl.drawArrays(window.squareGl.TRIANGLE_FAN, 0, 4);
+        }
+        
+        // 切换三角形和正方形的绘制模式
+        function toggleTrisquare() {
+            if (!window.trisquareGl) return;
+            
+            window.trisquareMode = window.trisquareMode === 'triangles' ? 'fan' : 'triangles';
+            
+            window.trisquareGl.clear(window.trisquareGl.COLOR_BUFFER_BIT);
+            
+            if (window.trisquareMode === 'triangles') {
+                // 三角形模式
+                window.trisquareGl.drawArrays(window.trisquareGl.TRIANGLES, 0, 3);
+                window.trisquareGl.drawArrays(window.trisquareGl.TRIANGLE_FAN, 3, 4);
+            } else {
+                // 扇形模式
+                window.trisquareGl.drawArrays(window.trisquareGl.TRIANGLE_FAN, 0, 7);
+            }
+        }
+        
+        // 随机化彩色三角形的颜色
+        function randomizeColors() {
+            if (!window.triangleColorGl || !window.triangleColorColors) return;
+            
+            // 生成随机颜色
+            for (let i = 0; i < window.triangleColorColors.length; i += 4) {
+                window.triangleColorColors[i] = Math.random();     // R
+                window.triangleColorColors[i+1] = Math.random();   // G
+                window.triangleColorColors[i+2] = Math.random();   // B
+                window.triangleColorColors[i+3] = 1.0;            // A
+            }
+            
+            // 更新颜色缓冲区
+            window.triangleColorGl.bindBuffer(window.triangleColorGl.ARRAY_BUFFER, window.triangleColorColorBuffer);
+            window.triangleColorGl.bufferData(window.triangleColorGl.ARRAY_BUFFER, window.triangleColorColors, window.triangleColorGl.STATIC_DRAW);
+            
+            // 重绘
+            window.triangleColorGl.clear(window.triangleColorGl.COLOR_BUFFER_BIT);
+            window.triangleColorGl.drawArrays(window.triangleColorGl.TRIANGLES, 0, 3);
+        }
+        
+        // 交换双着色器示例的颜色
+        function swapShaders() {
+            if (!window.trisquareNCGl || !window.trisquareNCColorLocation) return;
+            
+            window.trisquareNCSwapped = !window.trisquareNCSwapped;
+            
+            window.trisquareNCGl.clear(window.trisquareNCGl.COLOR_BUFFER_BIT);
+            
+            if (window.trisquareNCSwapped) {
+                // 三角形为绿色，正方形为红色
+                window.trisquareNCGl.uniform4f(window.trisquareNCColorLocation, 0.0, 1.0, 0.0, 1.0);
+                window.trisquareNCGl.drawArrays(window.trisquareNCGl.TRIANGLES, 0, 3);
+                window.trisquareNCGl.uniform4f(window.trisquareNCColorLocation, 1.0, 0.0, 0.0, 1.0);
+                window.trisquareNCGl.drawArrays(window.trisquareNCGl.TRIANGLE_FAN, 3, 4);
+            } else {
+                // 三角形为红色，正方形为绿色
+                window.trisquareNCGl.uniform4f(window.trisquareNCColorLocation, 1.0, 0.0, 0.0, 1.0);
+                window.trisquareNCGl.drawArrays(window.trisquareNCGl.TRIANGLES, 0, 3);
+                window.trisquareNCGl.uniform4f(window.trisquareNCColorLocation, 0.0, 1.0, 0.0, 1.0);
+                window.trisquareNCGl.drawArrays(window.trisquareNCGl.TRIANGLE_FAN, 3, 4);
+            }
+        }
+        
+        // 改变彩色组合图形的形状颜色
+        function changeShapeColors() {
+            if (!window.trisquareNCV2Gl || !window.trisquareNCV2Colors) return;
+            
+            // 为三角形生成随机颜色
+            const triangleColor = [Math.random(), Math.random(), Math.random(), 1.0];
+            for (let i = 0; i < 12; i += 4) {
+                window.trisquareNCV2Colors[i] = triangleColor[0];
+                window.trisquareNCV2Colors[i+1] = triangleColor[1];
+                window.trisquareNCV2Colors[i+2] = triangleColor[2];
+                window.trisquareNCV2Colors[i+3] = triangleColor[3];
+            }
+            
+            // 为正方形生成随机颜色
+            const squareColor = [Math.random(), Math.random(), Math.random(), 1.0];
+            for (let i = 12; i < 28; i += 4) {
+                window.trisquareNCV2Colors[i] = squareColor[0];
+                window.trisquareNCV2Colors[i+1] = squareColor[1];
+                window.trisquareNCV2Colors[i+2] = squareColor[2];
+                window.trisquareNCV2Colors[i+3] = squareColor[3];
+            }
+            
+            // 更新颜色缓冲区
+            window.trisquareNCV2Gl.bindBuffer(window.trisquareNCV2Gl.ARRAY_BUFFER, window.trisquareNCV2ColorBuffer);
+            window.trisquareNCV2Gl.bufferData(window.trisquareNCV2Gl.ARRAY_BUFFER, window.trisquareNCV2Colors, window.trisquareNCV2Gl.STATIC_DRAW);
+            
+            // 重绘
+            window.trisquareNCV2Gl.clear(window.trisquareNCV2Gl.COLOR_BUFFER_BIT);
+            window.trisquareNCV2Gl.drawArrays(window.trisquareNCV2Gl.TRIANGLES, 0, 3);
+            window.trisquareNCV2Gl.drawArrays(window.trisquareNCV2Gl.TRIANGLE_FAN, 3, 4);
+        }
+        
+        // 页面加载完成后初始化所有图形
+        window.onload = function() {
+            drawTriangle();
+            drawSquare();
+            drawTrisquare();
+            drawTriangleColor();
+            drawTrisquareNC();
+            drawTrisquareNCV2();
+        };
+    </script>
+</body>
+</html>
