@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TaoQiaoyuan - Steam风格个人主页</title>
+  <style>
+    :root {
+      --steam-blue: #66c0f4;
+      --steam-dark: #1b2838;
+      --steam-darker: #171a21;
+      --steam-border: #2a475e;
+      --steam-text: #c7d5e0;
+      --steam-text-secondary: #8f98a0;
+    }
+
+    /* 背景视频样式 */
+    .background-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: -1;
+      filter: brightness(0.4);
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+      color: var(--steam-text);
+      overflow-x: hidden;
+    }
+
+    .overlay {
+      background: rgba(27, 40, 56, 0.75);
+      min-height: 100vh;
+      padding: 40px 0;
+    }
+
+    .profile {
+      width: 80%;
+      max-width: 900px;
+      margin: auto;
+      background: rgba(24, 34, 45, 0.85);
+      border: 1px solid var(--steam-border);
+      border-radius: 6px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.6);
+      overflow: hidden;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      padding: 20px;
+      background: linear-gradient(90deg, var(--steam-darker), var(--steam-border));
+      border-bottom: 1px solid var(--steam-blue);
+      position: relative;
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--steam-blue), transparent);
+    }
+
+    .avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 8px;
+      background: #000;
+      overflow: hidden;
+      margin-right: 20px;
+      flex-shrink: 0;
+      border: 2px solid var(--steam-blue);
+      box-shadow: 0 0 8px rgba(102, 192, 244, 0.5);
+      transition: transform 0.3s ease;
+    }
+
+    .avatar:hover {
+      transform: scale(1.05);
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .userinfo h1 {
+      margin: 0;
+      font-size: 24px;
+      color: var(--steam-blue);
+      text-shadow: 0 0 5px rgba(102, 192, 244, 0.5);
+    }
+
+    .userinfo p {
+      margin: 6px 0 0;
+      color: var(--steam-text-secondary);
+    }
+
+    .content {
+      padding: 20px;
+    }
+
+    .section {
+      margin-bottom: 30px;
+    }
+
+    .section h2 {
+      font-size: 18px;
+      color: var(--steam-blue);
+      border-bottom: 1px solid var(--steam-border);
+      padding-bottom: 6px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+    }
+
+    .section h2::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 16px;
+      background: var(--steam-blue);
+      margin-right: 8px;
+      border-radius: 2px;
+    }
+
+    .badges {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      width: 64px;
+      height: 64px;
+      border-radius: 4px;
+      border: 1px solid var(--steam-border);
+      background: linear-gradient(145deg, #2a475e, #1b2838);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .badge:hover {
+      transform: translateY(-5px) scale(1.05);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .badge::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(102, 192, 244, 0.2), transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .badge:hover::after {
+      opacity: 1;
+    }
+
+    .badge img {
+      width: 80%;
+      height: 80%;
+      object-fit: contain;
+    }
+
+    .projects {
+      display: grid;
+      gap: 12px;
+    }
+
+    .project-item {
+      background: linear-gradient(145deg, #2a475e, #1f3547);
+      color: var(--steam-text);
+      border-radius: 6px;
+      padding: 16px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s;
+      border: 1px solid transparent;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .project-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--steam-blue);
+      transform: scaleY(0);
+      transition: transform 0.3s ease;
+    }
+
+    .project-item:hover {
+      background: linear-gradient(145deg, #3b6e8f, #2a475e);
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 0 15px rgba(102,192,244,0.3);
+      border-color: var(--steam-blue);
+    }
+
+    .project-item:hover::before {
+      transform: scaleY(1);
+    }
+
+    .project-item h3 {
+      margin: 0 0 4px;
+      color: var(--steam-blue);
+      font-size: 17px;
+    }
+
+    .project-item p {
+      margin: 0;
+      font-size: 14px;
+      color: var(--steam-text);
+    }
+
+    footer {
+      text-align: center;
+      color: var(--steam-text-secondary);
+      font-size: 13px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--steam-border);
+    }
+
+    @media (max-width: 768px) {
+      .profile {
+        width: 95%;
+      }
+      
+      .header {
+        flex-direction: column;
+        text-align: center;
+      }
+      
+      .avatar {
+        margin-right: 0;
+        margin-bottom: 15px;
+      }
+      
+      .badges {
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 背景视频 -->
+  <iframe class="background-video"
+    src="https://drive.google.com/file/d/1Bph-x9v4DB6Ec4OPjd3G1hLxx1aVHogR/preview?autoplay=1&mute=1&loop=1"
+    frameborder="0"
+    allow="autoplay"
+  ></iframe>
+
+  <div class="overlay">
+    <div class="profile">
+      <div class="header">
+        <div class="avatar">
+          <img src="https://qiaoyuantao.github.io/images/avatar.jpg" alt="Avatar">
+        </div>
+        <div class="userinfo">
+          <h1>TaoQiaoyuan</h1>
+          <p>个性签名：喜欢游戏与代码的创造者 🎮💻</p>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="section">
+          <h2>徽章展示</h2>
+          <div class="badges">
+            <div class="badge">
+              <img src="https://img.icons8.com/color/96/000000/javascript.png" alt="JavaScript">
+            </div>
+            <div class="badge">
+              <img src="https://img.icons8.com/color/96/000000/html-5.png" alt="HTML5">
+            </div>
+            <div class="badge">
+              <img src="https://img.icons8.com/color/96/000000/css3.png" alt="CSS3">
+            </div>
+            <div class="badge">
+              <img src="https://img.icons8.com/color/96/000000/game-controller.png" alt="游戏开发">
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>我的项目</h2>
+          <div class="projects">
+            <div class="project-item" onclick="window.open('https://qiaoyuantao.github.io/WebGL.html','_blank')">
+              <h3>🎯 Project 1 - WebGL图形</h3>
+              <p>使用 WebGL 实现的三维渲染演示</p>
+            </div>
+
+            <div class="project-item" onclick="window.open('https://github.com/qiaoyuantao','_blank')">
+              <h3>🧠 Project 2 - AI助理网页</h3>
+              <p>一个可以智能聊天与任务执行的网页助手</p>
+            </div>
+
+            <div class="project-item" onclick="window.open('https://qiaoyuantao.github.io','_blank')">
+              <h3>🌐 Project 3 - 个人作品集网站</h3>
+              <p>展示个人设计、开发与艺术创作成果的网页</p>
+            </div>
+          </div>
+        </div>
+
+        <footer>
+          © 2025 TaoQiaoyuan | Email：taoqiaoyuan@gmail.com
+        </footer>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
