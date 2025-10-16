@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Chapter2 Demos — Steam 风格集成</title>
+<style>
+  :root{
+    --bg:#0b1216;
+    --panel:#0f1b21;
+    --accent:#66c0f4;
+    --muted:#9aaabb;
+    --glass: rgba(255,255,255,0.03);
+  }
+  html,body{height:100%;margin:0;font-family:Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+  body{
+    background: linear-gradient(180deg,#071018 0%, #071b24 60%);
+    color:#dbe9f2;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    padding:28px;
+    box-sizing:border-box;
+  }
+
+  .container{
+    max-width:1100px;
+    margin:0 auto;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:12px;
+    box-shadow: 0 8px 30px rgba(2,10,18,0.6);
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,0.03);
+  }
+
+  /* header */
+  .header{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:18px 20px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.02), transparent);
+    border-bottom:1px solid rgba(255,255,255,0.02);
+  }
+  .logo{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .logo .badge{
+    width:42px;height:42px;border-radius:8px;
+    background:linear-gradient(135deg,var(--accent),#2aa0e0);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;color:#042430;box-shadow:0 4px 18px rgba(102,192,244,0.18);
+  }
+  h1{font-size:16px;margin:0}
+  p.desc{margin:0;color:var(--muted);font-size:13px}
+
+  /* tabs */
+  .tabs{
+    display:flex;
+    gap:8px;
+    padding:12px 20px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
+    border-bottom:1px solid rgba(255,255,255,0.02);
+  }
+  .tab{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 14px;
+    border-radius:8px;
+    cursor:pointer;
+    color:var(--muted);
+    transition: all 220ms cubic-bezier(.2,.9,.2,1);
+    user-select:none;
+    font-size:14px;
+    background:transparent;
+    border:1px solid transparent;
+  }
+  .tab .ico{
+    width:18px;height:18px;border-radius:4px;
+    background:rgba(255,255,255,0.04);
+    display:inline-block;
+    box-shadow: inset 0 -2px 0 rgba(0,0,0,0.12);
+  }
+  .tab:hover{ transform:translateY(-3px); color:#fff; background:var(--glass); }
+  .tab.active{
+    color:#012a34;
+    background: linear-gradient(180deg,var(--accent), #2aa0e0);
+    box-shadow: 0 8px 30px rgba(6,30,40,0.45);
+    border:1px solid rgba(255,255,255,0.06);
+  }
+
+  /* canvas area */
+  .canvas-wrap{
+    position:relative;
+    height:640px;
+    background: radial-gradient( circle at 20% 10%, rgba(102,192,244,0.02), transparent 20% ),
+                linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0.08));
+    display:block;
+    overflow:hidden;
+  }
+
+  /* iframe panels (we use iframe to sandbox each demo) */
+  .panel{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    opacity:0; transform:scale(0.99); pointer-events:none;
+    transition: opacity 300ms ease, transform 300ms ease;
+  }
+  .panel.visible{
+    opacity:1; transform:scale(1); pointer-events:auto;
+  }
+  .panel iframe{
+    width:100%; height:100%; border:0; background:#000;
+  }
+
+  /* footer controls */
+  .footer{
+    display:flex;justify-content:space-between;align-items:center;padding:12px 20px;background:transparent;border-top:1px solid rgba(255,255,255,0.01);
+    gap:12px;
+  }
+  .small{font-size:13px;color:var(--muted)}
+
+  /* responsive */
+  @media (max-width:900px){
+    .container{ margin:12px; }
+    .canvas-wrap{ height:520px; }
+  }
+  @media (max-width:600px){
+    .tabs{ flex-wrap:wrap; gap:6px; padding:10px;}
+    .tab{ padding:8px 10px; font-size:13px;}
+    .canvas-wrap{ height:420px; }
+  }
+</style>
+</head>
+<body>
+  <div class="container" role="application" aria-label="Chapter2 WebGL demos">
+    <div class="header">
+      <div class="logo">
+        <div class="badge">G2</div>
+      </div>
+      <div>
+        <h1>Chapter 2 — WebGL Demos</h1>
+        <p class="desc">Sierpinski / Gasket / Tessellation — 用选项卡在示例间切换（每个示例在 iframe 中运行，切换带淡入动画）</p>
+      </div>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Demo tabs">
+      <div class="tab active" data-demo="demo1" role="tab" aria-selected="true" tabindex="0">
+        <span class="ico" style="background:linear-gradient(135deg,#ffc6c6,#ff8a8a)"></span>
+        Gasket Points
+      </div>
+      <div class="tab" data-demo="demo2" role="tab" tabindex="0">
+        <span class="ico" style="background:linear-gradient(135deg,#ffdca6,#ffc24a)"></span>
+        Sierpinski Triangles
+      </div>
+      <div class="tab" data-demo="demo3" role="tab" tabindex="0">
+        <span class="ico" style="background:linear-gradient(135deg,#d3f8d4,#6fe39a)"></span>
+        Colored Gasket
+      </div>
+      <div class="tab" data-demo="demo4" role="tab" tabindex="0">
+        <span class="ico" style="background:linear-gradient(135deg,#cbe7ff,#66c0f4)"></span>
+        3D Gasket
+      </div>
+      <div class="tab" data-demo="demo5" role="tab" tabindex="0">
+        <span class="ico" style="background:linear-gradient(135deg,#e8d9ff,#c6a5ff)"></span>
+        Triangle Tessellation
+      </div>
+    </div>
+
+    <div class="canvas-wrap" id="canvasWrap" aria-live="polite">
+      <!-- 每个 panel 是一个 iframe，加载你上传的 chap2-demo-*.html -->
+      <div class="panel visible" id="demo1">
+        <iframe src="chap2-demo-1.html" title="Gasket Points"></iframe>
+      </div>
+      <div class="panel" id="demo2">
+        <iframe src="chap2-demo-2.html" title="Sierpinski Triangles"></iframe>
+      </div>
+      <div class="panel" id="demo3">
+        <iframe src="chap2-demo-3.html" title="Colored Gasket"></iframe>
+      </div>
+      <div class="panel" id="demo4">
+        <iframe src="chap2-demo-4.html" title="3D Gasket"></iframe>
+      </div>
+      <div class="panel" id="demo5">
+        <iframe src="chap2-demo-5.html" title="Triangle Tessellation"></iframe>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="small">Tip: 请把 <code>chap2-demo-*.html</code> 和其引用的 <code>js</code> / lib 文件放在同一目录下再打开此页面。</div>
+      <div style="color:var(--muted);font-size:13px">切换时 iframe 会平滑淡入 — 如果 demo 没显示，检查浏览器控制台或文件路径。</div>
+    </div>
+  </div>
+
+<script>
+  // 选项卡逻辑：切换可见的 panel（iframe），并管理 a11y 样式。
+  (function(){
+    const tabs = document.querySelectorAll('.tab');
+    const panels = document.querySelectorAll('.panel');
+
+    function showDemo(id){
+      panels.forEach(p=>{
+        if(p.id === id){
+          p.classList.add('visible');
+          // reload iframe to re-run demo if needed: (optional)
+          // const ifr = p.querySelector('iframe');
+          // ifr.src = ifr.src; // 强制重载（注释掉以避免每次都重载）
+        } else {
+          p.classList.remove('visible');
+        }
+      });
+      tabs.forEach(t=>{
+        t.classList.toggle('active', t.dataset.demo === id);
+        t.setAttribute('aria-selected', t.dataset.demo === id ? 'true' : 'false');
+      });
+    }
+
+    // 点击或键盘激活
+    tabs.forEach(t=>{
+      t.addEventListener('click', ()=> showDemo(t.dataset.demo) );
+      t.addEventListener('keydown', (e)=>{
+        if(e.key === 'Enter' || e.key === ' '){
+          e.preventDefault();
+          showDemo(t.dataset.demo);
+        }
+        // 左右切换
+        if(e.key === 'ArrowRight' || e.key === 'ArrowLeft'){
+          const idx = Array.from(tabs).indexOf(t);
+          const next = e.key === 'ArrowRight' ? (idx+1)%tabs.length : (idx-1+tabs.length)%tabs.length;
+          tabs[next].focus();
+          showDemo(tabs[next].dataset.demo);
+        }
+      });
+    });
+
+    // accessibility: focus first tab on load
+    tabs[0].setAttribute('tabindex', '0');
+  })();
+</script>
+</body>
+</html>
