@@ -21,12 +21,43 @@
       background-attachment: fixed;
       background-size: cover;
       color: var(--steam-text);
+      transition: background 0.5s ease;
     }
 
     .overlay {
       background: rgba(27, 40, 56, 0.85);
       min-height: 100vh;
       padding: 40px 0;
+    }
+
+    /* 🎨 新增：颜色控制面板样式 */
+    .color-controller {
+      background: rgba(0, 0, 0, 0.4);
+      width: fit-content;
+      margin: 0 auto 25px;
+      padding: 15px 20px;
+      border-radius: 10px;
+      text-align: center;
+      color: var(--steam-blue);
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+
+    .color-controller label {
+      margin: 0 10px;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 14px;
+      color: var(--steam-text);
+    }
+
+    .color-controller input[type="color"] {
+      border: none;
+      width: 60px;
+      height: 30px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 5px;
     }
 
     .profile {
@@ -47,16 +78,6 @@
       background: linear-gradient(90deg, var(--steam-darker), var(--steam-border));
       border-bottom: 1px solid var(--steam-blue);
       position: relative;
-    }
-
-    .header::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--steam-blue), transparent);
     }
 
     .avatar {
@@ -147,28 +168,6 @@
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     }
 
-    .badge::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(135deg, rgba(102, 192, 244, 0.2), transparent);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    .badge:hover::after {
-      opacity: 1;
-    }
-
-    .badge img {
-      width: 80%;
-      height: 80%;
-      object-fit: contain;
-    }
-
     .projects {
       display: grid;
       gap: 12px;
@@ -186,39 +185,11 @@
       overflow: hidden;
     }
 
-    .project-item::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 4px;
-      height: 100%;
-      background: var(--steam-blue);
-      transform: scaleY(0);
-      transition: transform 0.3s ease;
-    }
-
     .project-item:hover {
       background: linear-gradient(145deg, #3b6e8f, #2a475e);
       transform: translateY(-4px) scale(1.02);
       box-shadow: 0 0 15px rgba(102,192,244,0.3);
       border-color: var(--steam-blue);
-    }
-
-    .project-item:hover::before {
-      transform: scaleY(1);
-    }
-
-    .project-item h3 {
-      margin: 0 0 4px;
-      color: var(--steam-blue);
-      font-size: 17px;
-    }
-
-    .project-item p {
-      margin: 0;
-      font-size: 14px;
-      color: var(--steam-text);
     }
 
     footer {
@@ -230,22 +201,18 @@
       border-top: 1px solid var(--steam-border);
     }
 
-    /* 响应式调整 */
     @media (max-width: 768px) {
       .profile {
         width: 95%;
       }
-      
       .header {
         flex-direction: column;
         text-align: center;
       }
-      
       .avatar {
         margin-right: 0;
         margin-bottom: 15px;
       }
-      
       .badges {
         justify-content: center;
       }
@@ -254,6 +221,15 @@
 </head>
 <body>
   <div class="overlay">
+
+    <!-- 🎨 新增：可交互颜色控制器 -->
+    <div class="color-controller">
+      <strong>自定义背景渐变颜色</strong><br><br>
+      <label>颜色1 <input type="color" id="color1" value="#3a1c71"></label>
+      <label>颜色2 <input type="color" id="color2" value="#d76d77"></label>
+      <label>颜色3 <input type="color" id="color3" value="#ffaf7b"></label>
+    </div>
+
     <div class="profile">
       <div class="header">
         <div class="avatar">
@@ -269,18 +245,10 @@
         <div class="section">
           <h2>徽章展示</h2>
           <div class="badges">
-            <div class="badge">
-              <img src="https://img.icons8.com/color/96/000000/javascript.png" alt="JavaScript">
-            </div>
-            <div class="badge">
-              <img src="https://img.icons8.com/color/96/000000/html-5.png" alt="HTML5">
-            </div>
-            <div class="badge">
-              <img src="https://img.icons8.com/color/96/000000/css3.png" alt="CSS3">
-            </div>
-            <div class="badge">
-              <img src="https://img.icons8.com/color/96/000000/game-controller.png" alt="游戏开发">
-            </div>
+            <div class="badge"><img src="https://img.icons8.com/color/96/000000/javascript.png" alt="JavaScript"></div>
+            <div class="badge"><img src="https://img.icons8.com/color/96/000000/html-5.png" alt="HTML5"></div>
+            <div class="badge"><img src="https://img.icons8.com/color/96/000000/css3.png" alt="CSS3"></div>
+            <div class="badge"><img src="https://img.icons8.com/color/96/000000/game-controller.png" alt="游戏开发"></div>
           </div>
         </div>
 
@@ -291,12 +259,10 @@
               <h3>🎯 Project 1 - WebGL图形</h3>
               <p>使用 WebGL 实现的三维渲染演示</p>
             </div>
-
             <div class="project-item" onclick="window.open('https://github.com/qiaoyuantao','_blank')">
               <h3>🧠 Project 2 - AI助理网页</h3>
               <p>一个可以智能聊天与任务执行的网页助手</p>
             </div>
-
             <div class="project-item" onclick="window.open('https://qiaoyuantao.github.io','_blank')">
               <h3>🌐 Project 3 - 个人作品集网站</h3>
               <p>展示个人设计、开发与艺术创作成果的网页</p>
@@ -304,11 +270,34 @@
           </div>
         </div>
 
-        <footer>
-          © 2025 TaoQiaoyuan | Email：taoqiaoyuan@gmail.com
-        </footer>
+        <footer>© 2025 TaoQiaoyuan | Email：taoqiaoyuan@gmail.com</footer>
       </div>
     </div>
   </div>
+
+  <script>
+    const inputs = document.querySelectorAll('.color-controller input[type="color"]');
+    const savedColors = JSON.parse(localStorage.getItem('gradientColors')) || 
+      { color1: '#3a1c71', color2: '#d76d77', color3: '#ffaf7b' };
+
+    // 初始化颜色
+    Object.keys(savedColors).forEach(id => {
+      const input = document.getElementById(id);
+      if (input) input.value = savedColors[id];
+    });
+
+    // 更新背景函数
+    function updateBackground() {
+      const c1 = document.getElementById('color1').value;
+      const c2 = document.getElementById('color2').value;
+      const c3 = document.getElementById('color3').value;
+      document.body.style.background = `linear-gradient(135deg, ${c1}, ${c2}, ${c3})`;
+      localStorage.setItem('gradientColors', JSON.stringify({ color1: c1, color2: c2, color3: c3 }));
+    }
+
+    inputs.forEach(input => input.addEventListener('input', updateBackground));
+    updateBackground(); // 页面加载时立即应用
+  </script>
 </body>
 </html>
+
