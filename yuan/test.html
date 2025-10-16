@@ -13,28 +13,17 @@
       --steam-text: #c7d5e0;
       --steam-text-secondary: #8f98a0;
     }
-
-    /* 背景视频样式 */
-    .background-video {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      z-index: -1;
-      filter: brightness(0.4);
-    }
-
+    
     body {
       margin: 0;
       font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+      background: url("https://qiaoyuantao.github.io/images/background.png") no-repeat center center fixed;
+      background-size: cover;
       color: var(--steam-text);
-      overflow-x: hidden;
     }
 
     .overlay {
-      background: rgba(27, 40, 56, 0.75);
+      background: rgba(27, 40, 56, 0.85);
       min-height: 100vh;
       padding: 40px 0;
     }
@@ -262,13 +251,6 @@
   </style>
 </head>
 <body>
-  <!-- 背景视频 -->
-  <iframe class="background-video"
-    src="https://drive.google.com/file/d/1Bph-x9v4DB6Ec4OPjd3G1hLxx1aVHogR/preview?autoplay=1&mute=1&loop=1"
-    frameborder="0"
-    allow="autoplay"
-  ></iframe>
-
   <div class="overlay">
     <div class="profile">
       <div class="header">
