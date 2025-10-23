@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>Sierpinski 交互演示</title>
+  <style>
+    body { background:#222; color:#eee; text-align:center; font-family:sans-serif; }
+    canvas { border:1px solid #555; margin-top:10px; }
+    .controls { margin:10px auto; width:600px; background:#333; padding:10px 20px; border-radius:8px; text-align:left; }
+    label { width:120px; display:inline-block; }
+  </style>
+</head>
+<body>
+  <h2>WebGL 三角形细分与扭曲</h2>
+  <div class="controls">
+    <label>细分层数：</label><input type="range" id="subdivide" min="0" max="6" value="0"><span id="subVal">0</span><br>
+    <label>旋转角度：</label><input type="range" id="angle" min="0" max="180" value="60"><span id="angVal">60°</span><br>
+    <label>扭曲：</label><input type="checkbox" id="twist">
+  </div>
+  <canvas id="gl-canvas" width="600" height="600"></canvas>
+
+  <script id="vertex-shader" type="x-shader/x-vertex">
+  #version 300 es
+  in vec4 vPosition;
+  void main(){ gl_Position = vPosition; }
+  </script>
+
+  <script id="fragment-shader" type="x-shader/x-fragment">
+  #version 300 es
+  precision mediump float;
+  out vec4 fColor;
+  void main(){ fColor = vec4(1.0,0.2,0.1,1.0); }
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/gl-matrix@3.4.3/gl-matrix-min.js"></script>
+  <script>
+  const { vec3 } = glMatrix;
+  let gl, program, points=[];
+  let numTimesToSubdivide=0, theta=60, twist=false, radius=1.0;
+
+  window.onload = ()=>{
+    const canvas=document.getElementById("gl-canvas");
+    gl=canvas.getContext("webgl2");
+    if(!gl){alert("你的浏览器不支持 WebGL2");return;}
+
+    program=initShaders(gl,"vertex-shader","fragment-shader");
+    gl.useProgram(program);
+
+    setupControls();
+    renderAll();
+  };
+
+  function setupControls(){
+    document.getElementById("subdivide").oninput=e=>{
+      numTimesToSubdivide=parseInt(e.target.value);
+      document.getElementById("subVal").textContent=numTimesToSubdivide;
+      renderAll();
+    };
+    document.getElementById("angle").oninput=e=>{
+      theta=parseFloat(e.target.value);
+      document.getElementById("angVal").textContent=theta+"°";
+      renderAll();
+    };
+    document.getElementById("twist").onchange=e=>{
+      twist=e.target.checked;
+      renderAll();
+    };
+  }
+
+  function renderAll(){
+    points=[];
+    const verts=[
+      radius*Math.cos(90*Math.PI/180), radius*Math.sin(90*Math.PI/180),0,
+      radius*Math.cos(210*Math.PI/180),radius*Math.sin(210*Math.PI/180),0,
+      radius*Math.cos(-30*Math.PI/180),radius*Math.sin(-30*Math.PI/180),0
+    ];
+    const a=vec3.fromValues(verts[0],verts[1],verts[2]);
+    const b=vec3.fromValues(verts[3],verts[4],verts[5]);
+    const c=vec3.fromValues(verts[6],verts[7],verts[8]);
+    divideTriangle(a,b,c,numTimesToSubdivide);
+
+    const buffer=gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(points),gl.STATIC_DRAW);
+    const vPosition=gl.getAttribLocation(program,"vPosition");
+    gl.vertexAttribPointer(vPosition,3,gl.FLOAT,false,0,0);
+    gl.enableVertexAttribArray(vPosition);
+
+    gl.viewport(0,0,gl.canvas.width,gl.canvas.height);
+    gl.clearColor(1,1,1,1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.drawArrays(gl.LINES,0,points.length/3);
+  }
+
+  function tessellaTriangle(a,b,c){
+    const rad=theta*Math.PI/180;
+    let a2=vec3.create(),b2=vec3.create(),c2=vec3.create();
+    if(!twist){
+      rotateZ(a2,a,rad);rotateZ(b2,b,rad);rotateZ(c2,c,rad);
+    }else{
+      twistRotate(a2,a,rad);twistRotate(b2,b,rad);twistRotate(c2,c,rad);
+    }
+    addLine(a2,b2);addLine(b2,c2);addLine(c2,a2);
+  }
+
+  function rotateZ(out,v,rad){
+    out[0]=v[0]*Math.cos(rad)-v[1]*Math.sin(rad);
+    out[1]=v[0]*Math.sin(rad)+v[1]*Math.cos(rad);
+    out[2]=0;
+  }
+  function twistRotate(out,v,rad){
+    const d=Math.hypot(v[0],v[1]);
+    const t=rad*d;
+    out[0]=v[0]*Math.cos(t)-v[1]*Math.sin(t);
+    out[1]=v[0]*Math.sin(t)+v[1]*Math.cos(t);
+    out[2]=0;
+  }
+  function addLine(p1,p2){
+    points.push(p1[0],p1[1],p1[2]);
+    points.push(p2[0],p2[1],p2[2]);
+  }
+  function divideTriangle(a,b,c,count){
+    if(count===0){tessellaTriangle(a,b,c);}
+    else{
+      let ab=vec3.create(),bc=vec3.create(),ca=vec3.create();
+      vec3.lerp(ab,a,b,0.5);vec3.lerp(bc,b,c,0.5);vec3.lerp(ca,c,a,0.5);
+      divideTriangle(a,ab,ca,count-1);
+      divideTriangle(ab,b,bc,count-1);
+      divideTriangle(ca,bc,c,count-1);
+      divideTriangle(ab,bc,ca,count-1);
+    }
+  }
+
+  function initShaders(gl,vID,fID){
+    const vShader=loadShader(gl,gl.VERTEX_SHADER,document.getElementById(vID).text);
+    const fShader=loadShader(gl,gl.FRAGMENT_SHADER,document.getElementById(fID).text);
+    const prog=gl.createProgram();
+    gl.attachShader(prog,vShader);
+    gl.attachShader(prog,fShader);
+    gl.linkProgram(prog);
+    if(!gl.getProgramParameter(prog,gl.LINK_STATUS))
+      alert("Shader link error: "+gl.getProgramInfoLog(prog));
+    return prog;
+  }
+  function loadShader(gl,type,source){
+    const shader=gl.createShader(type);
+    gl.shaderSource(shader,source);
+    gl.compileShader(shader);
+    if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS))
+      alert("Shader compile error: "+gl.getShaderInfoLog(shader));
+    return shader;
+  }
+  </script>
+</body>
+</html>
