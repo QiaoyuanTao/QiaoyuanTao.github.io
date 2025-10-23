@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebGL Sierpinski Gasket 交互演示</title>
+    <title>WebGL Sierpinski Gasket 实验</title>
     <style>
         * {
             margin: 0;
@@ -184,69 +184,64 @@
 <body>
     <div class="container">
         <header>
-            <h1>WebGL Sierpinski Gasket 交互演示</h1>
+            <h1>WebGL Sierpinski Gasket 实验</h1>
             <p class="description">
-                此演示展示了五种不同的Sierpinski Gasket实现方法：点模式、三角形模式、彩色点模式、3D四面体模式和三角形细分模式。
-                您可以通过下面的控件切换不同演示并调整参数。
+                本实验展示了多种Sierpinski Gasket实现方法：二维三角形细分、三维四面体细分、线框模式、固定角度旋转和基于距离的旋转效果。
+                您可以通过下面的控件切换不同模式并调整参数。
             </p>
         </header>
         
         <div class="content">
             <div class="canvas-container">
-                <h2 id="demo-title">Gasket Points</h2>
-                <canvas id="gl-canvas" width="512" height="512">
+                <h2 id="demo-title">二维Sierpinski Gasket</h2>
+                <canvas id="gl-canvas" width="600" height="600">
                     您的浏览器不支持HTML5 canvas元素
                 </canvas>
             </div>
             
             <div class="controls">
                 <div class="control-group">
-                    <h2>演示选择</h2>
-                    <label for="demo-select">选择演示类型:</label>
+                    <h2>模式选择</h2>
+                    <label for="demo-select">选择模式:</label>
                     <select id="demo-select">
-                        <option value="points">点模式 Sierpinski Gasket</option>
-                        <option value="triangles">三角形模式 Sierpinski Gasket</option>
-                        <option value="color">彩色点模式 Sierpinski Gasket</option>
-                        <option value="3d">3D Sierpinski Gasket</option>
-                        <option value="tessellation">三角形细分</option>
+                        <option value="gasket2d">二维Sierpinski Gasket</option>
+                        <option value="gasket3d">三维Sierpinski Gasket</option>
+                        <option value="wireframe">线框模式三角形细分</option>
+                        <option value="rotation">固定角度旋转</option>
+                        <option value="distance-rotation">基于距离的旋转</option>
                     </select>
                 </div>
                 
                 <div class="control-group">
                     <h2>参数控制</h2>
                     
-                    <div id="points-controls">
-                        <label for="points-count">点的数量:</label>
-                        <input type="range" id="points-count" min="100" max="10000" value="5000" step="100">
-                        <div class="value-display">
-                            <span>100</span>
-                            <span id="points-count-value">5000</span>
-                            <span>10000</span>
-                        </div>
-                    </div>
-                    
                     <div id="subdivision-controls">
-                        <label for="subdivision-level">细分级别:</label>
-                        <input type="range" id="subdivision-level" min="0" max="6" value="3" step="1">
+                        <label for="subdivision-level">细分级别 (0-7):</label>
+                        <input type="range" id="subdivision-level" min="0" max="7" value="3" step="1">
                         <div class="value-display">
                             <span>0</span>
                             <span id="subdivision-level-value">3</span>
-                            <span>6</span>
+                            <span>7</span>
                         </div>
                     </div>
                     
-                    <div id="tessellation-controls">
+                    <div id="rotation-controls" style="display: none;">
                         <label for="theta">旋转角度 (θ):</label>
-                        <input type="range" id="theta" min="0" max="180" value="60" step="1">
+                        <input type="range" id="theta" min="0" max="360" value="60" step="1">
                         <div class="value-display">
                             <span>0°</span>
                             <span id="theta-value">60°</span>
-                            <span>180°</span>
+                            <span>360°</span>
                         </div>
-                        
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="twist">
-                            <label for="twist">启用扭曲效果</label>
+                    </div>
+                    
+                    <div id="distance-controls" style="display: none;">
+                        <label for="distance-theta">基于距离的旋转角度:</label>
+                        <input type="range" id="distance-theta" min="0" max="360" value="60" step="1">
+                        <div class="value-display">
+                            <span>0°</span>
+                            <span id="distance-theta-value">60°</span>
+                            <span>360°</span>
                         </div>
                     </div>
                 </div>
@@ -256,67 +251,31 @@
         </div>
         
         <div class="info-panel">
-            <h2>关于 Sierpinski Gasket</h2>
-            <p>Sierpinski Gasket（谢尔宾斯基三角形）是一种分形图案，由波兰数学家Wacław Sierpiński在1915年描述。</p>
-            <p>它可以通过不断将三角形分割为更小的三角形来创建，或者通过随机迭代函数系统（IFS）生成。</p>
-            <p>这个演示展示了使用WebGL（Web Graphics Library）在浏览器中实时渲染Sierpinski Gasket的多种方法。</p>
+            <h2>实验说明</h2>
+            <p><strong>二维Sierpinski Gasket</strong>：通过递归细分三角形生成经典的分形图案。</p>
+            <p><strong>三维Sierpinski Gasket</strong>：在三维空间中通过递归细分四面体生成分形图案。</p>
+            <p><strong>线框模式三角形细分</strong>：使用线框模式展示三角形细分过程。</p>
+            <p><strong>固定角度旋转</strong>：所有三角形绕原点旋转固定角度。</p>
+            <p><strong>基于距离的旋转</strong>：每个三角形的旋转角度与其到原点的距离相关。</p>
+            <p>通过调整细分级别和旋转角度，可以观察不同参数下的图案变化。</p>
         </div>
     </div>
 
     <!-- 着色器脚本 -->
-    <script id="vertex-shader-points" type="x-shader/x-vertex">
+    <script id="vertex-shader" type="x-shader/x-vertex">
         #version 300 es
         in vec4 vPosition;
         void main(){
-            gl_PointSize = 3.0;
             gl_Position = vPosition;
         }
     </script>
 
-    <script id="fragment-shader-points" type="x-shader/x-fragment">
+    <script id="fragment-shader" type="x-shader/x-fragment">
         #version 300 es
         precision mediump float;
         out vec4 fColor;
         void main(){
             fColor = vec4( 1.0, 0.0, 0.0, 1.0 );
-        }
-    </script>
-
-    <script id="vertex-shader-triangles" type="x-shader/x-vertex">
-        #version 300 es
-        in vec4 vPosition;
-        void main(){
-            gl_Position = vPosition;
-        }
-    </script>
-
-    <script id="fragment-shader-triangles" type="x-shader/x-fragment">
-        #version 300 es
-        precision mediump float;
-        out vec4 fColor;
-        void main(){
-            fColor = vec4( 1.0, 0.0, 0.0, 1.0 );
-        }
-    </script>
-
-    <script id="vertex-shader-color" type="x-shader/x-vertex">
-        #version 300 es
-        in vec4 vPosition;
-        out vec4 vColor;
-        void main(){
-            gl_Position = vPosition;
-            gl_PointSize = 2.0;
-            vColor = vec4((1.0+vPosition.xyz)/2.0, 1.0);
-        }
-    </script>
-
-    <script id="fragment-shader-color" type="x-shader/x-fragment">
-        #version 300 es
-        precision mediump float;
-        in vec4 vColor;
-        out vec4 fColor;
-        void main(){
-            fColor= vColor;
         }
     </script>
 
@@ -343,51 +302,35 @@
         }
     </script>
 
-    <script id="vertex-shader-tessellation" type="x-shader/x-vertex">
-        #version 300 es
-        in vec4 vPosition;
-        void main(){
-            gl_Position = vPosition;
-        }
-    </script>
-
-    <script id="fragment-shader-tessellation" type="x-shader/x-fragment">
-        #version 300 es
-        precision mediump float;
-        out vec4 fColor;
-        void main(){
-            fColor = vec4( 1.0, 0.0, 0.0, 1.0 );
-        }
-    </script>
-
     <!-- 主应用程序 -->
     <script>
         "use strict";
 
         // 全局变量
         let gl, canvas;
-        let currentDemo = 'points';
+        let currentDemo = 'gasket2d';
         let program;
+        let points = [];
+        let colors = [];
         
         // 演示参数
         const params = {
-            points: {
-                numPoints: 5000
-            },
-            triangles: {
+            gasket2d: {
                 numTimesToSubdivide: 3
             },
-            color: {
-                numPoints: 5000
-            },
-            '3d': {
+            gasket3d: {
                 numTimesToSubdivide: 3
             },
-            tessellation: {
-                numTimesToSubdivide: 0,
-                theta: 60,
-                twist: false,
-                radius: 1.0
+            wireframe: {
+                numTimesToSubdivide: 3
+            },
+            rotation: {
+                numTimesToSubdivide: 3,
+                theta: 60
+            },
+            'distance-rotation': {
+                numTimesToSubdivide: 3,
+                theta: 60
             }
         };
 
@@ -403,7 +346,7 @@
             }
             
             // 设置初始演示
-            setupDemo('points');
+            setupDemo('gasket2d');
             
             // 设置事件监听器
             setupEventListeners();
@@ -417,38 +360,32 @@
             });
             
             // 参数控制
-            document.getElementById('points-count').addEventListener('input', function(e) {
-                const value = parseInt(e.target.value);
-                document.getElementById('points-count-value').textContent = value;
-                params.points.numPoints = value;
-                params.color.numPoints = value;
-                if (currentDemo === 'points' || currentDemo === 'color') {
-                    setupDemo(currentDemo);
-                }
-            });
-            
             document.getElementById('subdivision-level').addEventListener('input', function(e) {
                 const value = parseInt(e.target.value);
                 document.getElementById('subdivision-level-value').textContent = value;
-                params.triangles.numTimesToSubdivide = value;
-                params['3d'].numTimesToSubdivide = value;
-                if (currentDemo === 'triangles' || currentDemo === '3d') {
-                    setupDemo(currentDemo);
+                
+                // 更新所有模式的细分级别
+                for (let key in params) {
+                    params[key].numTimesToSubdivide = value;
                 }
+                
+                setupDemo(currentDemo);
             });
             
             document.getElementById('theta').addEventListener('input', function(e) {
                 const value = parseInt(e.target.value);
                 document.getElementById('theta-value').textContent = value + '°';
-                params.tessellation.theta = value;
-                if (currentDemo === 'tessellation') {
+                params.rotation.theta = value;
+                if (currentDemo === 'rotation') {
                     setupDemo(currentDemo);
                 }
             });
             
-            document.getElementById('twist').addEventListener('change', function(e) {
-                params.tessellation.twist = e.target.checked;
-                if (currentDemo === 'tessellation') {
+            document.getElementById('distance-theta').addEventListener('input', function(e) {
+                const value = parseInt(e.target.value);
+                document.getElementById('distance-theta-value').textContent = value + '°';
+                params['distance-rotation'].theta = value;
+                if (currentDemo === 'distance-rotation') {
                     setupDemo(currentDemo);
                 }
             });
@@ -462,22 +399,21 @@
 
         // 重置参数
         function resetParams() {
-            params.points.numPoints = 5000;
-            params.triangles.numTimesToSubdivide = 3;
-            params.color.numPoints = 5000;
-            params['3d'].numTimesToSubdivide = 3;
-            params.tessellation.numTimesToSubdivide = 0;
-            params.tessellation.theta = 60;
-            params.tessellation.twist = false;
+            params.gasket2d.numTimesToSubdivide = 3;
+            params.gasket3d.numTimesToSubdivide = 3;
+            params.wireframe.numTimesToSubdivide = 3;
+            params.rotation.numTimesToSubdivide = 3;
+            params.rotation.theta = 60;
+            params['distance-rotation'].numTimesToSubdivide = 3;
+            params['distance-rotation'].theta = 60;
             
             // 更新UI
-            document.getElementById('points-count').value = 5000;
-            document.getElementById('points-count-value').textContent = '5000';
             document.getElementById('subdivision-level').value = 3;
             document.getElementById('subdivision-level-value').textContent = '3';
             document.getElementById('theta').value = 60;
             document.getElementById('theta-value').textContent = '60°';
-            document.getElementById('twist').checked = false;
+            document.getElementById('distance-theta').value = 60;
+            document.getElementById('distance-theta-value').textContent = '60°';
         }
 
         // 设置演示
@@ -486,21 +422,20 @@
             
             // 更新标题
             const titles = {
-                points: '点模式 Sierpinski Gasket',
-                triangles: '三角形模式 Sierpinski Gasket',
-                color: '彩色点模式 Sierpinski Gasket',
-                '3d': '3D Sierpinski Gasket',
-                tessellation: '三角形细分'
+                gasket2d: '二维Sierpinski Gasket',
+                gasket3d: '三维Sierpinski Gasket',
+                wireframe: '线框模式三角形细分',
+                rotation: '固定角度旋转',
+                'distance-rotation': '基于距离的旋转'
             };
             document.getElementById('demo-title').textContent = titles[demoType];
             
             // 显示/隐藏相关控件
-            document.getElementById('points-controls').style.display = 
-                (demoType === 'points' || demoType === 'color') ? 'block' : 'none';
-            document.getElementById('subdivision-controls').style.display = 
-                (demoType === 'triangles' || demoType === '3d') ? 'block' : 'none';
-            document.getElementById('tessellation-controls').style.display = 
-                demoType === 'tessellation' ? 'block' : 'none';
+            document.getElementById('subdivision-controls').style.display = 'block';
+            document.getElementById('rotation-controls').style.display = 
+                demoType === 'rotation' ? 'block' : 'none';
+            document.getElementById('distance-controls').style.display = 
+                demoType === 'distance-rotation' ? 'block' : 'none';
             
             // 设置WebGL
             gl.viewport(0, 0, canvas.width, canvas.height);
@@ -508,20 +443,20 @@
             
             // 根据演示类型调用相应的初始化函数
             switch(demoType) {
-                case 'points':
-                    initPointsDemo();
+                case 'gasket2d':
+                    initGasket2D();
                     break;
-                case 'triangles':
-                    initTrianglesDemo();
+                case 'gasket3d':
+                    initGasket3D();
                     break;
-                case 'color':
-                    initColorDemo();
+                case 'wireframe':
+                    initWireframe();
                     break;
-                case '3d':
-                    init3dDemo();
+                case 'rotation':
+                    initRotation();
                     break;
-                case 'tessellation':
-                    initTessellationDemo();
+                case 'distance-rotation':
+                    initDistanceRotation();
                     break;
             }
         }
@@ -562,89 +497,18 @@
             return shaderProgram;
         }
 
-        // 点模式演示
-        function initPointsDemo() {
-            program = initShaderProgram('vertex-shader-points', 'fragment-shader-points');
-            if (!program) return;
-            
-            gl.useProgram(program);
-            
-            const points = [];
-            const numPoints = params.points.numPoints;
-            
-            // 初始三角形顶点
-            const vertices = [
-                -1, -1,  0,
-                 0,  1,  0,
-                 1, -1,  0
-            ];
-            
-            // 指定迭代的起始点p，它必须在三个顶点内部
-            const u1 = [vertices[0], vertices[1], vertices[2]];
-            const u2 = [vertices[3], vertices[4], vertices[5]];
-            const u3 = [vertices[6], vertices[7], vertices[8]];
-            
-            // 计算初始点（三角形重心）
-            const p = [
-                (u1[0] + u2[0] + u3[0]) / 3,
-                (u1[1] + u2[1] + u3[1]) / 3,
-                (u1[2] + u2[2] + u3[2]) / 3
-            ];
-            
-            // 添加初始点
-            for (let i = 0; i < 3; i++)
-                points.push(p[i]);
-            
-            // 计算新点
-            // 每个新点位于最后一个点和随机选择的顶点之间的中点
-            for (let i = 0; points.length < numPoints * 3; i++) {
-                const j = Math.floor(Math.random() * 3);
-                
-                // 获取随机顶点
-                const u = [vertices[j*3], vertices[j*3+1], vertices[j*3+2]];
-                
-                // 获取当前点
-                const v = [points[i*3], points[i*3+1], points[i*3+2]];
-                
-                // 计算中点
-                const newPoint = [
-                    (u[0] + v[0]) / 2,
-                    (u[1] + v[1]) / 2,
-                    (u[2] + v[2]) / 2
-                ];
-                
-                // 添加新点
-                for (let k = 0; k < 3; k++)
-                    points.push(newPoint[k]);
+        // 二维Sierpinski Gasket
+        function initGasket2D() {
+            program = initShaderProgram('vertex-shader', 'fragment-shader');
+            if (!program) {
+                console.error("无法初始化着色器程序");
+                return;
             }
             
-            // 创建缓冲区
-            const bufferId = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, bufferId);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(points), gl.STATIC_DRAW);
-            
-            // 关联属性
-            const vPosition = gl.getAttribLocation(program, 'vPosition');
-            gl.vertexAttribPointer(vPosition, 3, gl.FLOAT, false, 0, 0);
-            gl.enableVertexAttribArray(vPosition);
-            
-            renderPoints();
-        }
-
-        function renderPoints() {
-            gl.clear(gl.COLOR_BUFFER_BIT);
-            gl.drawArrays(gl.POINTS, 0, params.points.numPoints);
-        }
-
-        // 三角形模式演示
-        function initTrianglesDemo() {
-            program = initShaderProgram('vertex-shader-triangles', 'fragment-shader-triangles');
-            if (!program) return;
-            
             gl.useProgram(program);
             
-            const points = [];
-            const numTimesToSubdivide = params.triangles.numTimesToSubdivide;
+            points = [];
+            const numTimesToSubdivide = params.gasket2d.numTimesToSubdivide;
             
             // 初始三角形顶点
             const vertices = [
@@ -652,19 +516,20 @@
                  0,  1,  0,
                  1, -1,  0
             ];
-            
-            const u = [vertices[0], vertices[1], vertices[2]];
-            const v = [vertices[3], vertices[4], vertices[5]];
-            const w = [vertices[6], vertices[7], vertices[8]];
-            
-            divideTriangle(u, v, w, numTimesToSubdivide);
-            
+
+            divideTriangle(
+                [vertices[0], vertices[1], vertices[2]],
+                [vertices[3], vertices[4], vertices[5]],
+                [vertices[6], vertices[7], vertices[8]],
+                numTimesToSubdivide
+            );
+
             function triangle(a, b, c) {
                 points.push(a[0], a[1], a[2]);
                 points.push(b[0], b[1], b[2]);
                 points.push(c[0], c[1], c[2]);
             }
-            
+
             function divideTriangle(a, b, c, count) {
                 if (count === 0) {
                     triangle(a, b, c);
@@ -677,7 +542,7 @@
                     ];
                     const bc = [
                         (b[0] + c[0]) / 2,
-                        (b[1] +c[1]) / 2,
+                        (b[1] + c[1]) / 2,
                         (b[2] + c[2]) / 2
                     ];
                     const ca = [
@@ -703,84 +568,29 @@
             gl.vertexAttribPointer(vPosition, 3, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(vPosition);
             
-            renderTriangles();
+            renderGasket2D();
         }
 
-        function renderTriangles() {
+        function renderGasket2D() {
             gl.clear(gl.COLOR_BUFFER_BIT);
-            gl.drawArrays(gl.TRIANGLES, 0, points.length / 3);
+            if (points.length > 0) {
+                gl.drawArrays(gl.TRIANGLES, 0, points.length / 3);
+            }
         }
 
-        // 彩色点模式演示
-        function initColorDemo() {
-            program = initShaderProgram('vertex-shader-color', 'fragment-shader-color');
-            if (!program) return;
-            
-            gl.useProgram(program);
-            
-            const points = [];
-            const numPoints = params.color.numPoints;
-            
-            const vertices = [
-                -1.0, -1.0, -1.0,
-                1.0, -1.0, -1.0,
-                0.0, 1.0, 0.0,
-                0.0, -1.0, 1.0
-            ];
-            
-            // 从原点开始
-            points.push(0.0, 0.0, 0.0);
-            
-            for (let i = 0; points.length < numPoints * 3; i++) {
-                const j = Math.floor(Math.random() * 4);
-                
-                // 获取当前点
-                const u = [points[i * 3], points[i * 3 + 1], points[i * 3 + 2]];
-                
-                // 获取随机顶点
-                const v = [vertices[j * 3], vertices[j * 3 + 1], vertices[j * 3 + 2]];
-                
-                // 计算中点
-                const p = [
-                    (u[0] + v[0]) / 2,
-                    (u[1] + v[1]) / 2,
-                    (u[2] + v[2]) / 2
-                ];
-                
-                points.push(p[0], p[1], p[2]);
+        // 三维Sierpinski Gasket
+        function initGasket3D() {
+            program = initShaderProgram('vertex-shader-3d', 'fragment-shader-3d');
+            if (!program) {
+                console.error("无法初始化着色器程序");
+                return;
             }
             
-            // 配置WebGL
-            gl.enable(gl.DEPTH_TEST);
-            
-            // 创建缓冲区
-            const vertexBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(points), gl.STATIC_DRAW);
-            
-            // 关联属性
-            const vPosition = gl.getAttribLocation(program, "vPosition");
-            gl.vertexAttribPointer(vPosition, 3, gl.FLOAT, false, 0, 0);
-            gl.enableVertexAttribArray(vPosition);
-            
-            renderColor();
-        }
-
-        function renderColor() {
-            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-            gl.drawArrays(gl.POINTS, 0, points.length / 3);
-        }
-
-        // 3D演示
-        function init3dDemo() {
-            program = initShaderProgram('vertex-shader-3d', 'fragment-shader-3d');
-            if (!program) return;
-            
             gl.useProgram(program);
             
-            const points = [];
-            const colors = [];
-            const numTimesToSubdivide = params['3d'].numTimesToSubdivide;
+            points = [];
+            colors = [];
+            const numTimesToSubdivide = params.gasket3d.numTimesToSubdivide;
             
             // 初始化四面体顶点
             const vertices = [
@@ -802,7 +612,7 @@
                     [1.0, 0.0, 0.0, 1.0],  // 红色
                     [0.0, 1.0, 0.0, 1.0],  // 绿色
                     [0.0, 0.0, 1.0, 1.0],  // 蓝色
-                    [0.0, 0.0, 0.0, 1.0]   // 黑色
+                    [1.0, 1.0, 0.0, 1.0]   // 黄色
                 ];
                 
                 // 添加三个顶点和对应的颜色
@@ -889,91 +699,169 @@
             gl.vertexAttribPointer(aColor, 4, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(aColor);
             
-            render3d();
+            renderGasket3D();
         }
 
-        function render3d() {
+        function renderGasket3D() {
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-            gl.drawArrays(gl.TRIANGLES, 0, points.length / 3);
+            if (points.length > 0) {
+                gl.drawArrays(gl.TRIANGLES, 0, points.length / 3);
+            }
         }
 
-        // 三角形细分演示
-        function initTessellationDemo() {
-            program = initShaderProgram('vertex-shader-tessellation', 'fragment-shader-tessellation');
-            if (!program) return;
+        // 线框模式三角形细分
+        function initWireframe() {
+            program = initShaderProgram('vertex-shader', 'fragment-shader');
+            if (!program) {
+                console.error("无法初始化着色器程序");
+                return;
+            }
             
             gl.useProgram(program);
             
-            const points = [];
-            const numTimesToSubdivide = params.tessellation.numTimesToSubdivide;
-            const theta = params.tessellation.theta;
-            const twist = params.tessellation.twist;
-            const radius = params.tessellation.radius;
+            points = [];
+            const numTimesToSubdivide = params.wireframe.numTimesToSubdivide;
             
             // 初始化三角形顶点
             const vertices = [
-                radius * Math.cos(90 * Math.PI / 180.0), radius * Math.sin(90 * Math.PI / 180.0),  0,
-                radius * Math.cos(210 * Math.PI / 180.0), radius * Math.sin(210 * Math.PI / 180.0),  0,
-                radius * Math.cos(-30 * Math.PI / 180.0), radius * Math.sin(-30 * Math.PI / 180.0),  0
+                -1, -1,  0,
+                 0,  1,  0,
+                 1, -1,  0
             ];
+
+            divideTriangle(
+                [vertices[0], vertices[1], vertices[2]],
+                [vertices[3], vertices[4], vertices[5]],
+                [vertices[6], vertices[7], vertices[8]],
+                numTimesToSubdivide
+            );
+
+            function triangle(a, b, c) {
+                // 添加线框
+                points.push(a[0], a[1], a[2]);
+                points.push(b[0], b[1], b[2]);
+                
+                points.push(b[0], b[1], b[2]);
+                points.push(c[0], c[1], c[2]);
+                
+                points.push(c[0], c[1], c[2]);
+                points.push(a[0], a[1], a[2]);
+            }
+
+            function divideTriangle(a, b, c, count) {
+                if (count === 0) {
+                    triangle(a, b, c);
+                } else {
+                    // 计算中点
+                    const ab = [
+                        (a[0] + b[0]) / 2,
+                        (a[1] + b[1]) / 2,
+                        (a[2] + b[2]) / 2
+                    ];
+                    const bc = [
+                        (b[0] + c[0]) / 2,
+                        (b[1] + c[1]) / 2,
+                        (b[2] + c[2]) / 2
+                    ];
+                    const ca = [
+                        (c[0] + a[0]) / 2,
+                        (c[1] + a[1]) / 2,
+                        (c[2] + a[2]) / 2
+                    ];
+                    
+                    // 三个新三角形
+                    divideTriangle(a, ab, ca, count-1);
+                    divideTriangle(b, bc, ab, count-1);
+                    divideTriangle(c, ca, bc, count-1);
+                }
+            }
             
-            const u = [vertices[0], vertices[1], vertices[2]];
-            const v = [vertices[3], vertices[4], vertices[5]];
-            const w = [vertices[6], vertices[7], vertices[8]];
+            // 创建缓冲区
+            const vertexBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(points), gl.STATIC_DRAW);
             
-            divideTriangle(u, v, w, numTimesToSubdivide);
+            // 关联属性
+            const vPosition = gl.getAttribLocation(program, "vPosition");
+            gl.vertexAttribPointer(vPosition, 3, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(vPosition);
             
-            function tessellaTriangle(a, b, c) {
+            renderWireframe();
+        }
+
+        function renderWireframe() {
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            if (points.length > 0) {
+                gl.drawArrays(gl.LINES, 0, points.length / 3);
+            }
+        }
+
+        // 固定角度旋转
+        function initRotation() {
+            program = initShaderProgram('vertex-shader', 'fragment-shader');
+            if (!program) {
+                console.error("无法初始化着色器程序");
+                return;
+            }
+            
+            gl.useProgram(program);
+            
+            points = [];
+            const numTimesToSubdivide = params.rotation.numTimesToSubdivide;
+            const theta = params.rotation.theta;
+            
+            // 初始化三角形顶点
+            const vertices = [
+                -1, -1,  0,
+                 0,  1,  0,
+                 1, -1,  0
+            ];
+
+            divideTriangle(
+                [vertices[0], vertices[1], vertices[2]],
+                [vertices[3], vertices[4], vertices[5]],
+                [vertices[6], vertices[7], vertices[8]],
+                numTimesToSubdivide
+            );
+
+            function triangle(a, b, c) {
                 const radian = theta * Math.PI / 180.0;
                 
-                const a_new = [a[0], a[1], a[2]];
-                const b_new = [b[0], b[1], b[2]];
-                const c_new = [c[0], c[1], c[2]];
+                // 旋转点a
+                const a_new = [
+                    a[0] * Math.cos(radian) - a[1] * Math.sin(radian),
+                    a[0] * Math.sin(radian) + a[1] * Math.cos(radian),
+                    0
+                ];
                 
-                if (twist === false) {
-                    // 简单旋转
-                    const cosTheta = Math.cos(radian);
-                    const sinTheta = Math.sin(radian);
-                    
-                    // 旋转点a
-                    a_new[0] = a[0] * cosTheta - a[1] * sinTheta;
-                    a_new[1] = a[0] * sinTheta + a[1] * cosTheta;
-                    
-                    // 旋转点b
-                    b_new[0] = b[0] * cosTheta - b[1] * sinTheta;
-                    b_new[1] = b[0] * sinTheta + b[1] * cosTheta;
-                    
-                    // 旋转点c
-                    c_new[0] = c[0] * cosTheta - c[1] * sinTheta;
-                    c_new[1] = c[0] * sinTheta + c[1] * cosTheta;
-                } else {
-                    // 扭曲效果
-                    const d_a = Math.sqrt(a[0] * a[0] + a[1] * a[1]);
-                    const d_b = Math.sqrt(b[0] * b[0] + b[1] * b[1]);
-                    const d_c = Math.sqrt(c[0] * c[0] + c[1] * c[1]);
-                    
-                    a_new[0] = a[0] * Math.cos(d_a * radian) - a[1] * Math.sin(d_a * radian);
-                    a_new[1] = a[0] * Math.sin(d_a * radian) + a[1] * Math.cos(d_a * radian);
-                    
-                    b_new[0] = b[0] * Math.cos(d_b * radian) - b[1] * Math.sin(d_b * radian);
-                    b_new[1] = b[0] * Math.sin(d_b * radian) + b[1] * Math.cos(d_b * radian);
-                    
-                    c_new[0] = c[0] * Math.cos(d_c * radian) - c[1] * Math.sin(d_c * radian);
-                    c_new[1] = c[0] * Math.sin(d_c * radian) + c[1] * Math.cos(d_c * radian);
-                }
+                // 旋转点b
+                const b_new = [
+                    b[0] * Math.cos(radian) - b[1] * Math.sin(radian),
+                    b[0] * Math.sin(radian) + b[1] * Math.cos(radian),
+                    0
+                ];
+                
+                // 旋转点c
+                const c_new = [
+                    c[0] * Math.cos(radian) - c[1] * Math.sin(radian),
+                    c[0] * Math.sin(radian) + c[1] * Math.cos(radian),
+                    0
+                ];
                 
                 // 添加线框
                 points.push(a_new[0], a_new[1], a_new[2]);
                 points.push(b_new[0], b_new[1], b_new[2]);
+                
                 points.push(b_new[0], b_new[1], b_new[2]);
                 points.push(c_new[0], c_new[1], c_new[2]);
+                
                 points.push(c_new[0], c_new[1], c_new[2]);
                 points.push(a_new[0], a_new[1], a_new[2]);
             }
-            
+
             function divideTriangle(a, b, c, count) {
                 if (count === 0) {
-                    tessellaTriangle(a, b, c);
+                    triangle(a, b, c);
                 } else {
                     // 计算中点
                     const ab = [
@@ -1010,12 +898,134 @@
             gl.vertexAttribPointer(vPosition, 3, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(vPosition);
             
-            renderTessellation();
+            renderRotation();
         }
 
-        function renderTessellation() {
+        function renderRotation() {
             gl.clear(gl.COLOR_BUFFER_BIT);
-            gl.drawArrays(gl.LINES, 0, points.length / 3);
+            if (points.length > 0) {
+                gl.drawArrays(gl.LINES, 0, points.length / 3);
+            }
+        }
+
+        // 基于距离的旋转
+        function initDistanceRotation() {
+            program = initShaderProgram('vertex-shader', 'fragment-shader');
+            if (!program) {
+                console.error("无法初始化着色器程序");
+                return;
+            }
+            
+            gl.useProgram(program);
+            
+            points = [];
+            const numTimesToSubdivide = params['distance-rotation'].numTimesToSubdivide;
+            const theta = params['distance-rotation'].theta;
+            
+            // 初始化三角形顶点
+            const vertices = [
+                -1, -1,  0,
+                 0,  1,  0,
+                 1, -1,  0
+            ];
+
+            divideTriangle(
+                [vertices[0], vertices[1], vertices[2]],
+                [vertices[3], vertices[4], vertices[5]],
+                [vertices[6], vertices[7], vertices[8]],
+                numTimesToSubdivide
+            );
+
+            function triangle(a, b, c) {
+                // 计算每个点到原点的距离
+                const d_a = Math.sqrt(a[0] * a[0] + a[1] * a[1]);
+                const d_b = Math.sqrt(b[0] * b[0] + b[1] * b[1]);
+                const d_c = Math.sqrt(c[0] * c[0] + c[1] * c[1]);
+                
+                // 根据距离计算旋转角度
+                const radian_a = d_a * theta * Math.PI / 180.0;
+                const radian_b = d_b * theta * Math.PI / 180.0;
+                const radian_c = d_c * theta * Math.PI / 180.0;
+                
+                // 旋转点a
+                const a_new = [
+                    a[0] * Math.cos(radian_a) - a[1] * Math.sin(radian_a),
+                    a[0] * Math.sin(radian_a) + a[1] * Math.cos(radian_a),
+                    0
+                ];
+                
+                // 旋转点b
+                const b_new = [
+                    b[0] * Math.cos(radian_b) - b[1] * Math.sin(radian_b),
+                    b[0] * Math.sin(radian_b) + b[1] * Math.cos(radian_b),
+                    0
+                ];
+                
+                // 旋转点c
+                const c_new = [
+                    c[0] * Math.cos(radian_c) - c[1] * Math.sin(radian_c),
+                    c[0] * Math.sin(radian_c) + c[1] * Math.cos(radian_c),
+                    0
+                ];
+                
+                // 添加线框
+                points.push(a_new[0], a_new[1], a_new[2]);
+                points.push(b_new[0], b_new[1], b_new[2]);
+                
+                points.push(b_new[0], b_new[1], b_new[2]);
+                points.push(c_new[0], c_new[1], c_new[2]);
+                
+                points.push(c_new[0], c_new[1], c_new[2]);
+                points.push(a_new[0], a_new[1], a_new[2]);
+            }
+
+            function divideTriangle(a, b, c, count) {
+                if (count === 0) {
+                    triangle(a, b, c);
+                } else {
+                    // 计算中点
+                    const ab = [
+                        (a[0] + b[0]) / 2,
+                        (a[1] + b[1]) / 2,
+                        (a[2] + b[2]) / 2
+                    ];
+                    const bc = [
+                        (b[0] + c[0]) / 2,
+                        (b[1] + c[1]) / 2,
+                        (b[2] + c[2]) / 2
+                    ];
+                    const ca = [
+                        (c[0] + a[0]) / 2,
+                        (c[1] + a[1]) / 2,
+                        (c[2] + a[2]) / 2
+                    ];
+                    
+                    // 四个新三角形
+                    divideTriangle(a, ab, ca, count-1);
+                    divideTriangle(ab, b, bc, count-1);
+                    divideTriangle(ca, bc, c, count-1);
+                    divideTriangle(ab, bc, ca, count-1);
+                }
+            }
+            
+            // 创建缓冲区
+            const vertexBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(points), gl.STATIC_DRAW);
+            
+            // 关联属性
+            const vPosition = gl.getAttribLocation(program, "vPosition");
+            gl.vertexAttribPointer(vPosition, 3, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(vPosition);
+            
+            renderDistanceRotation();
+        }
+
+        function renderDistanceRotation() {
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            if (points.length > 0) {
+                gl.drawArrays(gl.LINES, 0, points.length / 3);
+            }
         }
     </script>
 </body>
