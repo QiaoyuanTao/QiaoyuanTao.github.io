@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>太阳系行星运动模拟</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
+        color: white;
+      }
+      canvas {
+        display: block;
+        border: 1px solid #333;
+      }
+      .info {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        background-color: rgba(0, 0, 0, 0.7);
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 14px;
+      }
+      .controls {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background-color: rgba(0, 0, 0, 0.7);
+        padding: 10px;
+        border-radius: 5px;
+      }
+      button {
+        background-color: #444;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        margin: 0 5px;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="solarSystem"></canvas>
+    <div class="controls">
+      <button id="pauseBtn">暂停</button>
+      <button id="resetBtn">重置</button>
+    </div>
+    <div class="info">
+      <p>太阳系行星运动模拟 (按比例缩小距离)</p>
+      <p>使用矩阵复合变换实现行星公转和自转</p>
+    </div>
+
+    <script>
+      // 获取Canvas元素和上下文
+      const canvas = document.getElementById("solarSystem");
+      const ctx = canvas.getContext("2d");
+
+      // 设置Canvas尺寸为窗口大小
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      // 中心点坐标
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+
+      // 动画控制
+      let animationId = null;
+      let isPaused = false;
+
+      // 行星数据 (简化模型，距离和大小不按实际比例)
+      const planets = {
+        sun: {
+          radius: 40,
+          color: "#FFD700",
+          angle: 0,
+          rotationSpeed: 0.002,
+          hasRings: false,
+        },
+        earth: {
+          radius: 12,
+          color: "#1E90FF",
+          orbitRadius: 150,
+          angle: 0,
+          orbitSpeed: 0.01,
+          rotationSpeed: 0.02,
+          hasRings: false,
+          moons: [
+            {
+              name: "moon",
+              radius: 4,
+              color: "#CCCCCC",
+              orbitRadius: 25,
+              angle: 0,
+              orbitSpeed: 0.05,
+            },
+          ],
+        },
+        mars: {
+          radius: 10,
+          color: "#FF4500",
+          orbitRadius: 220,
+          angle: Math.PI / 2,
+          orbitSpeed: 0.007,
+          rotationSpeed: 0.015,
+          hasRings: false,
+        },
+      };
+
+      // 绘制行星函数
+      function drawPlanet(planet, x, y) {
+        // 绘制行星主体
+        ctx.beginPath();
+        ctx.arc(x, y, planet.radius, 0, Math.PI * 2);
+        ctx.fillStyle = planet.color;
+        ctx.fill();
+
+        // 如果有光环，绘制光环
+        if (planet.hasRings) {
+          ctx.beginPath();
+          ctx.ellipse(
+            x,
+            y,
+            planet.radius * 1.8,
+            planet.radius * 0.5,
+            0,
+            0,
+            Math.PI * 2
+          );
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+
+        // 绘制行星表面特征（简化）
+        ctx.beginPath();
+        ctx.arc(
+          x - planet.radius / 3,
+          y - planet.radius / 3,
+          planet.radius / 4,
+          0,
+          Math.PI * 2
+        );
+        ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
+        ctx.fill();
+      }
+
+      // 绘制轨道
+      function drawOrbit(radius) {
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+        ctx.stroke();
+      }
+
+      // 动画循环
+      function animate() {
+        // 清除画布
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 保存当前画布状态
+        ctx.save();
+
+        // 绘制太阳
+        drawPlanet(planets.sun, centerX, centerY);
+
+        // 绘制地球轨道
+        drawOrbit(planets.earth.orbitRadius);
+
+        // 计算地球位置
+        const earthX =
+          centerX + planets.earth.orbitRadius * Math.cos(planets.earth.angle);
+        const earthY =
+          centerY + planets.earth.orbitRadius * Math.sin(planets.earth.angle);
+
+        // 保存状态以绘制地球及其卫星
+        ctx.save();
+
+        // 绘制地球
+        drawPlanet(planets.earth, earthX, earthY);
+
+        // 绘制月球轨道
+        ctx.beginPath();
+        ctx.arc(
+          earthX,
+          earthY,
+          planets.earth.moons[0].orbitRadius,
+          0,
+          Math.PI * 2
+        );
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+        ctx.stroke();
+
+        // 计算月球位置
+        const moonX =
+          earthX +
+          planets.earth.moons[0].orbitRadius *
+            Math.cos(planets.earth.moons[0].angle);
+        const moonY =
+          earthY +
+          planets.earth.moons[0].orbitRadius *
+            Math.sin(planets.earth.moons[0].angle);
+
+        // 绘制月球
+        drawPlanet(planets.earth.moons[0], moonX, moonY);
+
+        // 恢复状态（回到地球绘制前的状态）
+        ctx.restore();
+
+        // 绘制火星轨道
+        drawOrbit(planets.mars.orbitRadius);
+
+        // 计算火星位置
+        const marsX =
+          centerX + planets.mars.orbitRadius * Math.cos(planets.mars.angle);
+        const marsY =
+          centerY + planets.mars.orbitRadius * Math.sin(planets.mars.angle);
+
+        // 绘制火星
+        drawPlanet(planets.mars, marsX, marsY);
+
+        // 恢复初始状态
+        ctx.restore();
+
+        // 更新角度（如果未暂停）
+        if (!isPaused) {
+          planets.sun.angle += planets.sun.rotationSpeed;
+          planets.earth.angle += planets.earth.orbitSpeed;
+          planets.earth.moons[0].angle += planets.earth.moons[0].orbitSpeed;
+          planets.mars.angle += planets.mars.orbitSpeed;
+        }
+
+        // 继续动画循环
+        animationId = requestAnimationFrame(animate);
+      }
+
+      // 事件监听
+      document
+        .getElementById("pauseBtn")
+        .addEventListener("click", function () {
+          isPaused = !isPaused;
+          this.textContent = isPaused ? "继续" : "暂停";
+        });
+
+      document
+        .getElementById("resetBtn")
+        .addEventListener("click", function () {
+          planets.sun.angle = 0;
+          planets.earth.angle = 0;
+          planets.earth.moons[0].angle = 0;
+          planets.mars.angle = Math.PI / 2;
+        });
+
+      // 窗口大小调整时重置Canvas尺寸
+      window.addEventListener("resize", function () {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      });
+
+      // 开始动画
+      animate();
+    </script>
+  </body>
+</html>
