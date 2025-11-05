@@ -1,1 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>二维图形变换应用 - 等边三角形</title>
+    <style>
+        html,body{margin:0;padding:0;height:100%;font-family:Arial,Helvetica,sans-serif}
+        #container{display:flex;height:100%}
+        #canvas-container{flex:1;position:relative}
+        canvas{display:block;width:100%;height:100vh;background:#fff}
+        #controls{width:280px;padding:20px;background:#f2f2f2;box-shadow:-2px 0 5px rgba(0,0,0,.1)}
+        h2{margin-top:0}
+        .ctrl{margin-bottom:15px}
+        label{display:inline-block;width:80px;font-size:14px}
+        input[type=range]{width:150px;vertical-align:middle}
+        .val{display:inline-block;width:50px;text-align:right;font-size:14px}
+        button{width:100%;padding:8px;font-size:16px;margin-top:10px}
+    </style>
+</head>
+<body>
+<div id="container">
+    <div id="canvas-container">
+        <canvas id="glCanvas"></canvas>
+    </div>
 
+    <div id="controls">
+        <h2>变换控制</h2>
+
+        <!-- 平移 -->
+        <div class="ctrl">
+            <label>平移 X</label>
+            <input type="range" id="transX" min="-1" max="1" step="0.01" value="0">
+            <span class="val" id="transXVal">0</span>
+        </div>
+        <div class="ctrl">
+            <label>平移 Y</label>
+            <input type="range" id="transY" min="-1" max="1" step="0.01" value="0">
+            <span class="val" id="transYVal">0</span>
+        </div>
+
+        <!-- 旋转 -->
+        <div class="ctrl">
+            <label>旋转角</label>
+            <input type="range" id="angle" min="0" max="360" step="1" value="0">
+            <span class="val" id="angleVal">0°</span>
+        </div>
+
+        <!-- 缩放 -->
+        <div class="ctrl">
+            <label>缩放 X</label>
+            <input type="range" id="scaleX" min="0.1" max="3" step="0.01" value="1">
+            <span class="val" id="scaleXVal">1</span>
+        </div>
+        <div class="ctrl">
+            <label>缩放 Y</label>
+            <input type="range" id="scaleY" min="0.1" max="3" step="0.01" value="1">
+            <span class="val" id="scaleYVal">1</span>
+        </div>
+
+        <button id="resetBtn">重置</button>
+    </div>
+</div>
+
+<script>
+/* ---------- WebGL 部分 ---------- */
+const canvas = document.getElementById('glCanvas');
+const gl = canvas.getContext('webgl2');
+if (!gl) { alert('WebGL2 不可用'); }
+
+/* 着色器源码 */
+const vShaderSrc = `##version 300 es
+in vec4 vPosition;
+uniform vec2 uTrans;
+uniform float uRot;
+uniform vec2 uScale;
+uniform vec2 uAspect;   // 宽高比修正
+out vec4 fColor;
+
+void main(){
+    float c = cos(uRot);
+    float s = sin(uRot);
+    vec2 pos = vPosition.xy * uScale;          // 缩放
+    pos = vec2(pos.x * c - pos.y * s, pos.x * s + pos.y * c); // 旋转
+    pos = pos * uAspect + uTrans;              // 宽高比修正 + 平移
+    gl_Position = vec4(pos, 0.0, 1.0);
+}`;
+
+const fShaderSrc = `##version 300 es
+precision mediump float;
+out vec4 fColor;
+void main(){
+    fColor = vec4(1.0, 0.0, 0.0, 1.0);
+}`;
+
+/* 创建着色器程序 */
+function createShader(gl, type, src) {
+    const sh = gl.createShader(type);
+    gl.shaderSource(sh, src.replace(/^##/, '#')); // 去掉双#方便模板
+    gl.compileShader(sh);
+    if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
+        console.error(gl.getShaderInfoLog(sh));
+        gl.deleteShader(sh); return null;
+    }
+    return sh;
+}
+
+const vSh = createShader(gl, gl.VERTEX_SHADER, vShaderSrc);
+const fSh = createShader(gl, gl.FRAGMENT_SHADER, fShaderSrc);
+const prog = gl.createProgram();
+gl.attachShader(prog, vSh);
+gl.attachShader(prog, fSh);
+gl.linkProgram(prog);
+if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+    console.error(gl.getProgramInfoLog(prog));
+}
+gl.useProgram(prog);
+
+/* 等边三角形顶点（边长=1，中心原点） */
+const h = Math.sqrt(3) / 2;
+const vertices = new Float32Array([
+     0.0,  h / 2,
+    -0.5, -h / 2,
+     0.5, -h / 2
+]);
+
+const buf = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+const locPos = gl.getAttribLocation(prog, 'vPosition');
+gl.vertexAttribPointer(locPos, 2, gl.FLOAT, false, 0, 0);
+gl.enableVertexAttribArray(locPos);
+
+/* uniform 位置 */
+const locTrans = gl.getUniformLocation(prog, 'uTrans');
+const locRot   = gl.getUniformLocation(prog, 'uRot');
+const locScale = gl.getUniformLocation(prog, 'uScale');
+const locAsp   = gl.getUniformLocation(prog, 'uAspect');
+
+/* 控制变量 */
+let transX = 0, transY = 0;
+let angle  = 0;
+let scaleX = 1, scaleY = 1;
+
+/* 界面联动 */
+function setupSlider(id, valId, cb) {
+    const slider = document.getElementById(id);
+    const span   = document.getElementById(valId);
+    slider.addEventListener('input', e => {
+        const v = parseFloat(e.target.value);
+        span.textContent = v + (id === 'angle' ? '°' : '');
+        cb(v);
+        draw();
+    });
+}
+setupSlider('transX', 'transXVal', v => transX = v);
+setupSlider('transY', 'transYVal', v => transY = v);
+setupSlider('angle',  'angleVal',  v => angle = v * Math.PI / 180);
+setupSlider('scaleX', 'scaleXVal', v => scaleX = v);
+setupSlider('scaleY', 'scaleYVal', v => scaleY = v);
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+    document.getElementById('transX').value = 0;
+    document.getElementById('transY').value = 0;
+    document.getElementById('angle').value  = 0;
+    document.getElementById('scaleX').value = 1;
+    document.getElementById('scaleY').value = 1;
+    transX = 0; transY = 0; angle = 0; scaleX = 1; scaleY = 1;
+    updateSpans();
+    draw();
+});
+
+function updateSpans() {
+    document.getElementById('transXVal').textContent = transX.toFixed(2);
+    document.getElementById('transYVal').textContent = transY.toFixed(2);
+    document.getElementById('angleVal').textContent  = '0°';
+    document.getElementById('scaleXVal').textContent = '1';
+    document.getElementById('scaleYVal').textContent = '1';
+}
+
+/* 绘制与视口修正 */
+function draw() {
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    const asp = canvas.width / canvas.height;
+    gl.uniform2f(locAsp, 1 / asp, 1);   // 保持等边
+    gl.uniform2f(locTrans, transX, transY);
+    gl.uniform1f(locRot, angle);
+    gl.uniform2f(locScale, scaleX, scaleY);
+
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+}
+
+/* 窗口大小变化 */
+window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    draw();
+});
+
+/* 初始绘制 */
+updateSpans();
+draw();
+</script>
+</body>
+</html>
